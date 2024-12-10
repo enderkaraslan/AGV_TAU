@@ -1,0 +1,26 @@
+joy_node:
+  ros__parameters:
+    device_id: 0
+    deadzone: 0.05
+    autorepeat_rate: 20.0
+
+teleop_node:
+  ros__parameters:
+    axis_linear:
+      x: 4       # Typically an integer representing the axis index
+    scale_linear:
+      x: 0.5     # Float representing the scale factor for linear speed
+    scale_linear_turbo:
+      x: 1.0     # Float for turbo mode scale factor
+
+    axis_angular:
+      yaw: 0    # Axis index for angular movement, typically an integer
+    scale_angular:
+      yaw: 0.5   # Float for angular speed scaling
+    scale_angular_turbo:
+      yaw: 1.0   # Float for turbo mode angular scaling
+
+    enable_button: 5              # Integer index for the enable button
+    enable_turbo_button: 4        # Integer index for the turbo mode button
+
+    require_enable_button: true   # Boolean to enforce the use of enable button
