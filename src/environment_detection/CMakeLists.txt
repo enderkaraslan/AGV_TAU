@@ -18,7 +18,6 @@ include_directories(include)
 
 add_executable(environment_detection_node
   src/main.cpp
-  src/agv_node.cpp  
 )
 
 # Hedefe bağımlılıkları ekleyin

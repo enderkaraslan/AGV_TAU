@@ -1,0 +1,186 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="parkur">
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- Çizgiler -->
+    <!-- Sol sınır çizgisi -->
+    <model name="left_line">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>-13.2 10 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Sağ sınır çizgisi -->
+    <model name="right_line">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>13.2 10 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Üst çizgi -->
+    <model name="top_line">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>26.4 0.2 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>0 20 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Alt çizgi -->
+    <model name="bottom_line">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+           <box>
+              <size>26.4 0.2 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>0 0 0.005 0 0 0</pose>
+    </model>
+
+   <!-- Dikey orta çizgi 1-->
+    <model name="vertical_line_1">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>-8.32 10 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Dikey orta çizgi 2-->
+    <model name="vertical_line_2">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>-4.16 10 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Dikey orta çizgi 3-->
+    <model name="vertical_line_3">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>0 10 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Dikey orta çizgi 4-->
+    <model name="vertical_line_4">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>4.16 10 0.005 0 0 0</pose>
+    </model>
+
+    <!-- Dikey orta çizgi 5-->
+    <model name="vertical_line_5">
+      <static>true</static>
+      <link name="line_link">
+        <visual name="line_visual">
+          <geometry>
+            <box>
+              <size>0.2 20 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0 1</ambient>
+            <diffuse>0 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>8.32 10 0.005 0 0 0</pose>
+    </model>
+  </world>
+</sdf>

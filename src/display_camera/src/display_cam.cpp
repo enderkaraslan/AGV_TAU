@@ -25,6 +25,8 @@ void Camera::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
     try
     {
         cv::Mat cv_image = cv_bridge::toCvCopy(msg, "bgr8")->image;
+        cv_image = Camera::perspective_image(cv_image);
+        
         cv::imshow("Camera Image", cv_image);
         cv::waitKey(1);
     }
@@ -34,6 +36,15 @@ void Camera::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
     }
 }
 
+cv::Mat Camera::perspective_image(cv::Mat& img)
+{
+    cv::Point2f srcPoints[4] = { {100, 200}, {300, 200}, {100, 400}, {300, 400} };
+    cv::Point2f dstPoints[4] = { {0, 0}, {500, 0}, {0, 500}, {500, 500} };
 
+    cv::Mat perspectiveMatrix = cv::getPerspectiveTransform(srcPoints, dstPoints);
+    cv::Mat outputImage;
+    cv::warpPerspective(img, outputImage, perspectiveMatrix, cv::Size(500, 500));
+    return outputImage;
+}
 
 } // namespace DISPLAY

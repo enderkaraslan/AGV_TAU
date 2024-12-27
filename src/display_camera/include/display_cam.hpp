@@ -22,7 +22,7 @@ public:
 private:
   
     void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
-
+    cv::Mat perspective_image(cv::Mat& img);
     
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr camera_subscription_;
 
