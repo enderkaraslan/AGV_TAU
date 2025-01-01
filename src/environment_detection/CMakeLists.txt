@@ -18,6 +18,7 @@ include_directories(include)
 
 add_executable(environment_detection_node
   src/main.cpp
+  src/ImageProcess.cpp
 )
 
 # Hedefe bağımlılıkları ekleyin

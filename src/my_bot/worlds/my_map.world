@@ -57,7 +57,7 @@
         <visual name="line_visual">
           <geometry>
             <box>
-              <size>26.4 0.2 0.01</size>
+              <size>26.6 0.2 0.01</size>
             </box>
           </geometry>
           <material>
@@ -76,7 +76,7 @@
         <visual name="line_visual">
           <geometry>
            <box>
-              <size>26.4 0.2 0.01</size>
+              <size>26.6 0.2 0.01</size>
             </box>
           </geometry>
           <material>
