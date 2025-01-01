@@ -12,11 +12,12 @@
 #include "ImageProcess.h"
 #include "Constants.h"
 #include <queue>
+#include "Timer.h"
 
-    
 enum class TurnType {
     LEFT,
-    RIGHT
+    RIGHT,
+    STOP
 };
 
 struct Turn {
@@ -46,7 +47,7 @@ private:
     void stopThread(std::thread& thread, std::atomic<bool>& running, const std::string& threadName);
 
     void handleStopStateEntry();
-    void handleStopStateRunning(long elapsed_time);
+    void handleStopStateRunning();
     void handleStopStateExit();
 
     void handleStraightState();
@@ -74,9 +75,9 @@ private:
     State state_{State::STRAIGHT};
     State next_state_{State::IDLE};
     
-    std::chrono::steady_clock::time_point turn_left_start_time;
-    std::chrono::steady_clock::time_point turn_right_start_time;
-    std::chrono::steady_clock::time_point stop_start_time;
+    Timer turn_left_timer_;
+    Timer turn_right_timer_;
+    Timer stop_timer_;
 
     ImageProcessor image_processor_;
 

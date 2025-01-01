@@ -1,12 +1,12 @@
 #include "AGV.h"
 
 AgvNode::AgvNode() : Node("agv_node") {
-    // Initialize the time points in the constructor:
-    turn_left_start_time = std::chrono::steady_clock::now();
-    turn_right_start_time = std::chrono::steady_clock::now();
-    stop_start_time = std::chrono::steady_clock::now();
-
+   
     route_.push({TurnType::LEFT, 3});
+    route_.push({TurnType::LEFT, 1});
+    route_.push({TurnType::LEFT, 6});
+    route_.push({TurnType::LEFT, 1});
+    
 
     // Kamera aboneliği
     camera_subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
@@ -42,7 +42,8 @@ void AgvNode::stopThread(std::thread& thread, std::atomic<bool>& running, const 
     }
 }
 
-void AgvNode::imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
+void AgvNode::imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) 
+{
     try {
         std::lock_guard<std::mutex> lock(image_mutex_);
         cv_image_ = cv_bridge::toCvCopy(msg, "bgr8")->image;
@@ -79,9 +80,6 @@ void AgvNode::controlLoop()
                         track_route(); 
                         is_turn_in_progress_ = false;
                     }
-
-
-
                 } 
                 else 
                 {
@@ -112,7 +110,6 @@ void AgvNode::controlLoop()
 
 void AgvNode::track_route()
 {
-
     if(route_.empty())
     {
         linear_speed_ = 0.0;
@@ -145,6 +142,12 @@ void AgvNode::track_route()
             next_state_ = State::TURN_RIGHT;
             state_ = State::STOP;
         }
+        else if (current_turn.type == TurnType::STOP)
+        {
+            RCLCPP_INFO(this->get_logger(), "Durduruluyor.");
+            next_state_ = State::STOP;
+            state_ = State::STOP;
+        }
         route_.pop();
     }
 
@@ -160,22 +163,22 @@ void AgvNode::lineFollow() {
                 case State::STOP: {
                     if (control_loop_thread_running_) {
                        stopThread(control_loop_thread_, control_loop_thread_running_, "Görüntü işleme");
-                   }
-                   if (!stop_state_entered) {
+                    }
+                    if (!stop_state_entered) {
                         handleStopStateEntry();
                         stop_state_entered = true;
                     }
-                    auto now = std::chrono::steady_clock::now();
-                    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - stop_start_time).count();
-
-                    if (elapsed_time < Constants::StopDurationMs) {
-                        handleStopStateRunning(elapsed_time);
-                    } 
-                    else 
+                    
+                    if (stop_timer_.isExpired(Constants::StopDurationMs)) 
                     {
                         handleStopStateExit();
                         stop_state_entered = false;
                     }
+                    else
+                    {
+                         handleStopStateRunning();
+                    }
+                    
                     break;
                 }
                 case State::STRAIGHT:
@@ -201,12 +204,12 @@ void AgvNode::lineFollow() {
 }
 
 void AgvNode::handleStopStateEntry() {
-    stop_start_time = std::chrono::steady_clock::now();
+    stop_timer_.start();
     RCLCPP_INFO(this->get_logger(), "STOP durumuna girildi. Zamanlayıcı başlatıldı.");
 }
 
-void AgvNode::handleStopStateRunning(long elapsed_time) {
-    RCLCPP_DEBUG(this->get_logger(), "STOP durumunda, belirlenen süre içinde düz gitmeye devam ediyor. Kalan süre: %ld ms", (Constants::StopDurationMs - elapsed_time));
+void AgvNode::handleStopStateRunning() {
+    RCLCPP_DEBUG(this->get_logger(), "STOP durumunda, belirlenen süre içinde düz gitmeye devam ediyor. Kalan süre: %lld ms", (long long)(Constants::StopDurationMs - stop_timer_.elapsedMilliseconds()));
     sendVelocityCommand(Constants::LinearSpeedMax, 0.0);
 }
 
@@ -215,16 +218,20 @@ void AgvNode::handleStopStateExit() {
     sendVelocityCommand(0.0, 0.0);
     if (next_state_ == State::TURN_LEFT) 
     {
-        turn_left_start_time = std::chrono::steady_clock::now();
+        turn_left_timer_.start();
         RCLCPP_INFO(this->get_logger(), "STOP durumundan TURN_LEFT durumuna geçiliyor.");
     } 
     else if (next_state_ == State::TURN_RIGHT) 
     {
-        turn_right_start_time = std::chrono::steady_clock::now();
+        turn_right_timer_.start();
         RCLCPP_INFO(this->get_logger(), "STOP durumundan TURN_RIGHT durumuna geçiliyor.");
     }
+    else if (next_state_ == State::STOP) 
+    {
+        RCLCPP_INFO(this->get_logger(), "STOP durumundan STOP durumuna geçiliyor.");
+    }
     state_ = next_state_;
-    next_state_ = State::STRAIGHT;
+    next_state_ = State::IDLE;
     RCLCPP_INFO(this->get_logger(), "STOP durumundan sonraki duruma geçiliyor: %d", static_cast<int>(state_));
 }
 
@@ -239,30 +246,23 @@ void AgvNode::handleStraightState() {
 }
 
 void AgvNode::handleTurnRightState() {
-    auto now = std::chrono::steady_clock::now();
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(now - turn_right_start_time).count();
-    auto remaining_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::seconds(static_cast<long>(Constants::TurnRightDurationSec)) - (now - turn_right_start_time)).count();
-
-    if (elapsed_time >= Constants::TurnRightDurationSec) {
+    
+    if (turn_right_timer_.isExpired(Constants::TurnRightDurationSec * 1000)) {
         RCLCPP_INFO(this->get_logger(), "TURN_RIGHT süresi doldu, STRAIGHT durumuna geçiliyor.");
         state_ = State::STRAIGHT;
     } else {
-         RCLCPP_DEBUG(this->get_logger(), "TURN_RIGHT durumunda sağa dönülüyor, kalan süre: %ld ms", remaining_time_ms);
+        RCLCPP_DEBUG(this->get_logger(), "TURN_RIGHT durumunda sağa dönülüyor, kalan süre: %lld ms", (long long)(Constants::TurnRightDurationSec * 1000 - turn_right_timer_.elapsedMilliseconds()));
         sendVelocityCommand(0.0, -Constants::TurnSpeed);
     }
 }
 
 void AgvNode::handleTurnLeftState() {
-     auto now = std::chrono::steady_clock::now();
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(now - turn_left_start_time).count();
-    auto remaining_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::seconds(static_cast<long>(Constants::TurnLeftDurationSec)) - (now - turn_left_start_time)).count();
-
-
-    if (elapsed_time >= Constants::TurnLeftDurationSec) {
+   
+    if (turn_left_timer_.isExpired(Constants::TurnLeftDurationSec * 1000)) {
         RCLCPP_INFO(this->get_logger(), "TURN_LEFT süresi doldu, STRAIGHT durumuna geçiliyor.");
         state_ = State::STRAIGHT;
     } else {
-        RCLCPP_DEBUG(this->get_logger(), "TURN_LEFT durumunda sola dönülüyor, kalan süre: %ld ms", remaining_time_ms);
+        RCLCPP_DEBUG(this->get_logger(), "TURN_LEFT durumunda sola dönülüyor, kalan süre: %lld ms", (long long)(Constants::TurnLeftDurationSec * 1000 - turn_left_timer_.elapsedMilliseconds()));
          sendVelocityCommand(0.0, Constants::TurnSpeed);
     }
 }
