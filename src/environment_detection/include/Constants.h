@@ -8,7 +8,7 @@ namespace Constants {
     constexpr double LinearSpeedMax  = 0.3;
     constexpr int  CircleRadius      = 5;
     constexpr int  MiddleCircleRadius = 3;
-    constexpr double AngularSpeedScale = 0.0008;
+    constexpr double AngularSpeedScale = 0.0005;
     constexpr double MinExtent        = 0.2;
     constexpr int  ControlLoopPeriodMs = 10;  // milisaniye
     constexpr int  StopDurationMs   = 1800;   // milisaniye

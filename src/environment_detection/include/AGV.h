@@ -82,5 +82,6 @@ private:
 
     std::queue<Turn> route_;
 
+    std::atomic<bool> is_turn_in_progress_{true};
     
 };

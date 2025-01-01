@@ -73,32 +73,27 @@ void AgvNode::controlLoop()
         if (contour_result.valid) {
             if (contour_result.extent > Constants::MinExtent) {
                 std::lock_guard<std::mutex> lock(state_mutex_);
-                if (contour_result.area > Constants::MinimumArea && contour_result.mid_pixel == Constants::MidPixelValue) {
-                    if (contour_result.left_black_pixel_count == Constants::BlackPixelValue) {
-                        linear_speed_ = 0.0;
-                        angular_speed_ = 0.0;
-                        RCLCPP_INFO(this->get_logger(), "Sola dön sinyali tespit edildi, next_state TURN_LEFT olarak ayarlandı.");
-                        next_state_ = State::TURN_LEFT;
-                        state_ = State::STOP;
-                    } else if (contour_result.right_black_pixel_count == Constants::BlackPixelValue) {
-                        linear_speed_ = 0.0;
-                        angular_speed_ = 0.0;
-                        RCLCPP_INFO(this->get_logger(), "Sağa dön sinyali tespit edildi, next_state TURN_RIGHT olarak ayarlandı.");
-                        next_state_ = State::TURN_RIGHT;
-                        state_ = State::STOP;
-                    } else {
-                        linear_speed_ = Constants::LinearSpeedMax;
-                        angular_speed_ = static_cast<double>(contour_result.middle_x - contour_result.contour_center.x) * Constants::AngularSpeedScale;
-                        RCLCPP_DEBUG(this->get_logger(), "Düz gitme durumu, linear_speed: %f, angular_speed: %f", linear_speed_, angular_speed_);
-                        state_ = State::STRAIGHT;
+                if (contour_result.area > Constants::MinimumArea && contour_result.mid_pixel == Constants::MidPixelValue && (contour_result.left_black_pixel_count == Constants::BlackPixelValue || contour_result.right_black_pixel_count == Constants::BlackPixelValue)) {
+                    if (is_turn_in_progress_)
+                    {
+                        track_route(); 
+                        is_turn_in_progress_ = false;
                     }
-                } else {
+
+
+
+                } 
+                else 
+                {
+                    is_turn_in_progress_ = true;
                     linear_speed_ = Constants::LinearSpeedMax;
                     angular_speed_ = static_cast<double>(contour_result.middle_x - contour_result.contour_center.x) * Constants::AngularSpeedScale;
                     RCLCPP_DEBUG(this->get_logger(), "Çizgi takip durumu, linear_speed: %f, angular_speed: %f", linear_speed_, angular_speed_);
                     state_ = State::STRAIGHT;
                 }
-            } else {
+            } 
+            else 
+            {
                 linear_speed_ = 0.0;
                 angular_speed_ = 0.0;
                 RCLCPP_DEBUG(this->get_logger(), "Sınır dışı durum, hızlar sıfırlandı.");
@@ -117,6 +112,7 @@ void AgvNode::controlLoop()
 
 void AgvNode::track_route()
 {
+
     if(route_.empty())
     {
         linear_speed_ = 0.0;
@@ -124,9 +120,13 @@ void AgvNode::track_route()
         state_ = State::STOP;
         next_state_ = State::IDLE;
         RCLCPP_WARN(this->get_logger(), "Route is empty: %d", static_cast<int>(route_.size()));
+        return;
     }
 
-    Turn current_turn = route_.front();
+    Turn& current_turn = route_.front();
+    current_turn.order--;
+
+    RCLCPP_INFO(this->get_logger(), "current_turn.order: %d", current_turn.order);
 
     if (current_turn.order == 0)
     {
@@ -146,13 +146,6 @@ void AgvNode::track_route()
             state_ = State::STOP;
         }
         route_.pop();
-    }
-    else
-    {
-        RCLCPP_INFO(this->get_logger(), "Dönüş tespit edildi ancak rotaya uymuyor düz devam edilecek.");
-        current_turn.order--;
-        state_ = State::STRAIGHT;
-
     }
 
 }
@@ -204,7 +197,7 @@ void AgvNode::lineFollow() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::ControlLoopPeriodMs));
     }
-     RCLCPP_INFO(this->get_logger(), "Çizgi takip thread'i sonlandırılıyor.");
+    RCLCPP_INFO(this->get_logger(), "Çizgi takip thread'i sonlandırılıyor.");
 }
 
 void AgvNode::handleStopStateEntry() {
