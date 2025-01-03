@@ -11,6 +11,7 @@
       <uri>model://ground_plane</uri>
     </include>
 
+
     <!-- Çizgiler -->
     <!-- Sol sınır çizgisi -->
     <model name="left_line">

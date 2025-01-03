@@ -45,6 +45,8 @@ private:
     void lineFollow();
     void sendVelocityCommand(double linearX, double angularZ);
     void stopThread(std::thread& thread, std::atomic<bool>& running, const std::string& threadName);
+    void stopControlLoop();
+
 
     void handleStopStateEntry();
     void handleStopStateRunning();
@@ -56,6 +58,11 @@ private:
     void handleErrorState();
 
     void track_route();
+    void adjustmentState();
+    void stop();
+    void turnLeft();
+    void turnRight();
+    
 
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr camera_subscription_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr velocity_publisher_;
@@ -64,9 +71,6 @@ private:
     std::atomic<bool> control_loop_thread_running_{true};
     std::mutex image_mutex_;
 
-    std::thread line_follow_thread_;
-    std::atomic<bool> line_follow_thread_running_{true};
-    std::mutex state_mutex_;
 
     cv::Mat cv_image_;
     double linear_speed_{0.0};
@@ -77,7 +81,8 @@ private:
     
     Timer turn_left_timer_;
     Timer turn_right_timer_;
-    Timer stop_timer_;
+    Timer adjustment_timer_;
+
 
     ImageProcessor image_processor_;
 
